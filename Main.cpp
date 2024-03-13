@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <cmath> 
 
 #include <opencv2/opencv.hpp>
@@ -9,17 +10,22 @@
 
 #define N 9
 
+
 using namespace cv;
 using namespace dnn;
 using namespace std;
 
 Mat im_gray;
+Mat im_rgb;
 int thresh = 100;
 const char* source_window = "Source";
 const char* contour_window = "Contours";
+const char* answer_window = "Solution";
 
 string modelFilepath{
     "C:/Users/3yanl/Code/sudokusolver/dcr_model.onnx"};
+// string modelFilepath{
+//     "C:/Users/3yanl/Code/sudokusolver/mnist.onnx"};
 
 dnn::Net net = dnn::readNet(modelFilepath);
 bool swapRB = false;
@@ -105,23 +111,28 @@ int main( int argc, char** argv )
     cout << "aa" << endl;
  
     // string im_rgb_path = "C:/Users/3yanl/Code/helloworldcpp/lenna.jpg";
-    string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sudoku.png";
-    Mat im_rgb = imread(im_rgb_path);
+    // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/b45fa272-de4b-4d66-aca1-0137828efd1e-bestSizeAvailable.jpeg";
+    string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku-Board-1.jpg";
+    // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku3.jpg";
+    // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku7.jpg";
+    // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku11.jpg";
+    // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku13.jpg";
+    // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Very-easy-difficulty-Sudoku-board-used-for-testing-36-givens.png";
+
+            
+    im_rgb = imread(im_rgb_path);
     if (!im_rgb.data) {
         return 1;
     }
 
-    im_gray = imread("C:/Users/3yanl/Code/helloworldcpp/sudoku.png", IMREAD_GRAYSCALE);
-    cvtColor(im_rgb, im_gray, COLOR_RGB2GRAY);
-
-    blur(im_gray, im_gray, Size(3,3) );
-
-    namedWindow( source_window, WINDOW_NORMAL );
-    imshow( source_window, im_gray );
+    im_gray = imread(im_rgb_path, IMREAD_GRAYSCALE);
+    
 
     create_treshold_image();    
-
     waitKey();
+           
+
+
     
     return 0;
 }
@@ -129,6 +140,11 @@ int main( int argc, char** argv )
 
 void create_treshold_image()
 {
+
+    cvtColor(im_rgb, im_gray, COLOR_RGB2GRAY);
+
+    blur(im_gray, im_gray, Size(3,3) );
+
     Mat result;
     int tresh = 50;
     Canny( im_gray, result, tresh, thresh*3, 3 );
@@ -173,8 +189,8 @@ void create_treshold_image()
     vector<Mat> croppedSquares;
     for (int i=0; i<9; i++){
         for (int j=0; j<9; j++){
-            char* crop_window = "Crops";
-            namedWindow( crop_window , WINDOW_NORMAL);
+            // char* crop_window = "Crops";
+            // namedWindow( crop_window , WINDOW_NORMAL);
             Rect roi((int)(largestRect.x + s_width*i), (int)(largestRect.y + s_height*j), (int)(s_width), (int)(s_height));
             Mat roiImage = im_gray(roi);
             resize(roiImage, roiImage, cv::Size(28, 28));
@@ -229,6 +245,15 @@ void create_treshold_image()
 
     }
 
+    int recognizedSudokuGrid[N][N];
+
+    // Copy the elements from sudokuGrid to recognizedSudokuGrid
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            recognizedSudokuGrid[i][j] = sudokuGrid[i][j];
+        }
+    }
+
     // Output the initialized grid
     std::cout << "Initialized grid:" << std::endl;
     for (int i = 0; i < N; ++i) {
@@ -245,6 +270,23 @@ void create_treshold_image()
         cout << "Keine Lösung gefunden!\n";
     }
 
-    namedWindow( contour_window, WINDOW_NORMAL);
-    imshow("Contours", drawing );
+    int numberOffset = (int)(s_width / 3);
+
+    // writing the solution on top of the image of the sudoku board
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+
+            if (recognizedSudokuGrid[j][i] == 0){
+                Point startingPoint((int)(largestRect.x + s_width*i + numberOffset * 0.7) , (int)(largestRect.y + s_height*j + numberOffset*2.5));
+                putText(im_rgb, std::to_string(sudokuGrid[j][i]), startingPoint, FONT_HERSHEY_SIMPLEX, 4, Scalar(0, 0, 255), 3);
+            }
+        }
+    }
+
+    // namedWindow(contour_window, WINDOW_NORMAL);
+    // imshow(contour_window, drawing );
+
+    namedWindow(answer_window, WINDOW_NORMAL);
+    imshow(answer_window, im_rgb );
+
 }
