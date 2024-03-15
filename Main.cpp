@@ -112,7 +112,7 @@ int main( int argc, char** argv )
  
     // string im_rgb_path = "C:/Users/3yanl/Code/helloworldcpp/lenna.jpg";
     // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/b45fa272-de4b-4d66-aca1-0137828efd1e-bestSizeAvailable.jpeg";
-    string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku-Board-1.jpg";
+    string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sudoku.png";
     // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku3.jpg";
     // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku7.jpg";
     // string im_rgb_path = "C:/Users/3yanl/Code/sudokusolver/sample_images/Sudoku11.jpg";
@@ -288,5 +288,7 @@ void create_treshold_image()
 
     namedWindow(answer_window, WINDOW_NORMAL);
     imshow(answer_window, im_rgb );
+
+    imwrite("solution.jpg", im_rgb);
 
 }
